@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mkdir -p /d/bot/backend/src/services /d/bot/backend/src/trading /d/bot/backend/src/routes /d/bot/backend/src/types /d/bot/backend/data /d/bot/frontend/src/api /d/bot/frontend/src/pages /d/bot/frontend/src/components /d/bot/frontend/src/types /d/bot/frontend/public && find /d/bot -type d)"
+    ],
+    "additionalDirectories": [
+      "D:\\bot\\backend\\src"
+    ]
+  }
+}
