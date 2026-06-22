@@ -20,6 +20,7 @@ const DEFAULT_SETTINGS: Settings = {
   rsiBuy: 30,
   rsiSell: 70,
   investmentPerTrade: 5000,
+  minVolumeChange: 0,
 };
 
 interface BotState {

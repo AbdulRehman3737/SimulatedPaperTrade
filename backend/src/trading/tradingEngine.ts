@@ -22,14 +22,14 @@ export const rsiTrendVolumeBuyStrategy: Strategy = ({ indicators, settings, hold
   const { rsi, ema50, ema200, volumeChange } = indicators;
   const rsiOversold = rsi < settings.rsiBuy;
   const trendBullish = ema50 > ema200;
-  const volumeIncreasing = volumeChange > 0;
+  const volumeIncreasing = volumeChange > settings.minVolumeChange;
 
   if (rsiOversold && trendBullish && volumeIncreasing) {
     return {
       action: "BUY",
       reason:
         `RSI ${rsi} < buy threshold ${settings.rsiBuy}, EMA50 (${ema50}) > EMA200 (${ema200}), ` +
-        `volume up ${volumeChange}%`,
+        `volume change ${volumeChange}% > min ${settings.minVolumeChange}%`,
     };
   }
 

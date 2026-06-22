@@ -12,6 +12,7 @@ const NUMERIC_FIELDS: (keyof Settings)[] = [
   "rsiBuy",
   "rsiSell",
   "investmentPerTrade",
+  "minVolumeChange",
 ];
 
 function coerceNumericFields(current: Settings, updates: Partial<Settings>): Settings {

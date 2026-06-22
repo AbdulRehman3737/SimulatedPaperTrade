@@ -12,6 +12,7 @@ const FIELDS: { key: keyof Settings; label: string; suffix?: string }[] = [
   { key: "stopLoss", label: "Stop Loss", suffix: "%" },
   { key: "rsiBuy", label: "RSI Buy Threshold" },
   { key: "rsiSell", label: "RSI Sell Threshold" },
+  { key: "minVolumeChange", label: "Min Volume Change", suffix: "%" },
 ];
 
 export default function StrategySettings(): JSX.Element {

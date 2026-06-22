@@ -37,6 +37,8 @@ export interface Settings {
   rsiBuy: number;
   rsiSell: number;
   investmentPerTrade: number;
+  /** Minimum volume change (%) required for a BUY signal. Set to -999 to effectively disable. */
+  minVolumeChange: number;
 }
 
 export interface Candle {
