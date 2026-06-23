@@ -1,40 +1,52 @@
-import { useState } from "react";
-import { getBotStatus, getMarket, getPortfolio, getSettings, getTrades, startBot, stopBot } from "../api/client";
+import { useCallback, useState } from "react";
+import useSWR from "swr";
+import { useInstances } from "../context/InstanceContext";
+import { getMarket, startBot, stopBot } from "../api/client";
+import { useBotStatus, usePortfolio, useTrades } from "../hooks/useInstanceData";
 import { BotControl } from "../components/BotControl";
 import { ErrorMessage } from "../components/ErrorMessage";
 import { HoldingsTable } from "../components/HoldingsTable";
 import { PortfolioGrowthChart } from "../components/PortfolioGrowthChart";
 import { PriceChart } from "../components/PriceChart";
 import { Spinner } from "../components/Spinner";
-import { usePolling } from "../hooks/usePolling";
-import { CoinSymbol, MarketData } from "../types";
+import { useSettings } from "../hooks/useInstanceData";
+import { CoinSymbol } from "../types";
 import { buildEquityCurve } from "../utils/equityCurve";
 import { formatCurrency, formatPercent } from "../utils/format";
 import { calculateHoldingsValue, calculateWinRate } from "../utils/portfolioMetrics";
 import { StatCard } from "../components/StatCard";
 
 const SYMBOLS: CoinSymbol[] = ["BTC", "ETH", "SOL"];
-const POLL_INTERVAL_MS = 15_000;
 
-async function fetchAllMarketData(): Promise<Record<CoinSymbol, MarketData>> {
-  const results = await Promise.all(SYMBOLS.map((symbol) => getMarket(symbol)));
-  return SYMBOLS.reduce((acc, symbol, index) => {
-    acc[symbol] = results[index];
-    return acc;
-  }, {} as Record<CoinSymbol, MarketData>);
+function useMarketData() {
+  const fetcher = useCallback(async (): Promise<Record<CoinSymbol, { price: number; candles: import("../types").Candle[] }>> => {
+    const results = await Promise.all(SYMBOLS.map((symbol) => getMarket(symbol)));
+    return SYMBOLS.reduce((acc, symbol, index) => {
+      acc[symbol] = results[index];
+      return acc;
+    }, {} as Record<CoinSymbol, { price: number; candles: import("../types").Candle[] }>);
+  }, []);
+
+  return useSWR("market-data", fetcher, {
+    refreshInterval: 15_000,
+    revalidateOnFocus: true,
+    errorRetryCount: 2,
+  });
 }
 
 export default function Dashboard(): JSX.Element {
+  const { currentInstance } = useInstances();
+  const instanceId = currentInstance?.id;
   const [selectedSymbol, setSelectedSymbol] = useState<CoinSymbol>("BTC");
   const [botBusy, setBotBusy] = useState(false);
 
-  const { data: portfolio, error: portfolioError } = usePolling(getPortfolio, POLL_INTERVAL_MS);
-  const { data: trades, error: tradesError } = usePolling(getTrades, POLL_INTERVAL_MS);
-  const { data: settings } = usePolling(getSettings, POLL_INTERVAL_MS);
-  const { data: marketData, error: marketError } = usePolling(fetchAllMarketData, POLL_INTERVAL_MS);
-  const { data: botStatus, refetch: refetchBotStatus } = usePolling(getBotStatus, POLL_INTERVAL_MS);
+  const { data: portfolio, error: portfolioError } = usePortfolio(instanceId);
+  const { data: trades } = useTrades(instanceId);
+  const { data: settings } = useSettings(instanceId);
+  const { data: marketData, error: marketError } = useMarketData();
+  const { data: botStatus, mutate: refetchBotStatus } = useBotStatus(instanceId);
 
-  const error = portfolioError || tradesError || marketError;
+  const error = portfolioError || marketError;
 
   const currentPrices: Partial<Record<CoinSymbol, number>> = {};
   if (marketData) {
@@ -52,29 +64,39 @@ export default function Dashboard(): JSX.Element {
   const closedTradeCount = trades?.filter((trade) => trade.action === "SELL").length ?? 0;
   const equityCurve = trades && settings ? buildEquityCurve(trades, settings.startingMoney, currentPortfolioValue) : [];
 
-  async function handleStart(): Promise<void> {
+  const handleStart = useCallback(async () => {
+    if (!instanceId) return;
     setBotBusy(true);
     try {
-      await startBot();
+      await startBot(instanceId);
       await refetchBotStatus();
     } finally {
       setBotBusy(false);
     }
-  }
+  }, [instanceId, refetchBotStatus]);
 
-  async function handleStop(): Promise<void> {
+  const handleStop = useCallback(async () => {
+    if (!instanceId) return;
     setBotBusy(true);
     try {
-      await stopBot();
+      await stopBot(instanceId);
       await refetchBotStatus();
     } finally {
       setBotBusy(false);
     }
+  }, [instanceId, refetchBotStatus]);
+
+  if (!instanceId) {
+    return (
+      <div className="flex items-center justify-center py-20 text-slate-500">
+        No bot instances available. Create one to get started.
+      </div>
+    );
   }
 
   return (
     <div className="space-y-6">
-      <BotControl status={botStatus} onStart={handleStart} onStop={handleStop} busy={botBusy} />
+      <BotControl status={botStatus ?? null} onStart={handleStart} onStop={handleStop} busy={botBusy} />
 
       {error && <ErrorMessage message={error} />}
 

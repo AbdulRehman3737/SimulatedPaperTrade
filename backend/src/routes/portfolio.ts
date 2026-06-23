@@ -1,26 +1,29 @@
 import { Router } from "express";
-import { loadPortfolio, loadSettings, savePortfolio } from "../services/botService";
+import { BotManager } from "../services/botManager";
 import { Portfolio } from "../types";
 import { asyncHandler } from "../utils/asyncHandler";
 
-const router = Router();
+export function createPortfolioRoutes(manager: BotManager): Router {
+  const router = Router({ mergeParams: true });
 
-router.get(
-  "/",
-  asyncHandler(async (_req, res) => {
-    res.json(loadPortfolio());
-  })
-);
+  router.get(
+    "/",
+    asyncHandler(async (req, res) => {
+      const { instanceId } = req.params;
+      res.json(manager.loadPortfolio(instanceId));
+    })
+  );
 
-/** Resets the simulated wallet back to the configured starting money, clearing all positions. */
-router.post(
-  "/reset",
-  asyncHandler(async (_req, res) => {
-    const settings = loadSettings();
-    const portfolio: Portfolio = { cash: settings.startingMoney, holdings: [], totalProfit: 0 };
-    savePortfolio(portfolio);
-    res.json(portfolio);
-  })
-);
+  router.post(
+    "/reset",
+    asyncHandler(async (req, res) => {
+      const { instanceId } = req.params;
+      const settings = manager.loadSettings(instanceId);
+      const portfolio: Portfolio = { cash: settings.startingMoney, holdings: [], totalProfit: 0 };
+      manager.savePortfolio(instanceId, portfolio);
+      res.json(portfolio);
+    })
+  );
 
-export default router;
+  return router;
+}

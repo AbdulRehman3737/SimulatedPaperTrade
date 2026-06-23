@@ -73,6 +73,13 @@ export interface TradeDecision {
   reason: string;
 }
 
+export interface BotInstance {
+  id: string;
+  name: string;
+  color: string;
+  createdAt: string;
+}
+
 export interface BotStatus {
   running: boolean;
   intervalMinutes: number;

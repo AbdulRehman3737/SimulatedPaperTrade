@@ -1,0 +1,32 @@
+[
+  {
+    "id": 1,
+    "symbol": "SOL",
+    "action": "BUY",
+    "price": 69.16,
+    "amount": 1000,
+    "reason": "RSI 28.14 < buy threshold 55, EMA50 (71.91) > EMA200 (71.3), volume change -85.76% > min -999%",
+    "timestamp": "2026-06-23T12:14:13.435Z"
+  },
+  {
+    "id": 2,
+    "symbol": "SOL",
+    "action": "SELL",
+    "price": 69.05,
+    "amount": 998.4094852515905,
+    "reason": "Stop loss hit: -0.16% <= -0.15%",
+    "entryPrice": 69.16,
+    "profit": -1.59,
+    "profitPercent": -0.16,
+    "timestamp": "2026-06-23T12:27:01.136Z"
+  },
+  {
+    "id": 3,
+    "symbol": "SOL",
+    "action": "BUY",
+    "price": 69.11,
+    "amount": 1000,
+    "reason": "RSI 27.87 < buy threshold 55, EMA50 (71.91) > EMA200 (71.3), volume change -73.69% > min -999%",
+    "timestamp": "2026-06-23T12:28:23.744Z"
+  }
+]

@@ -1,30 +1,38 @@
 import { Router } from "express";
-import { getBotStatus, startBot, stopBot } from "../services/botService";
+import { BotManager } from "../services/botManager";
 import { asyncHandler } from "../utils/asyncHandler";
 
-const router = Router();
+export function createBotRoutes(manager: BotManager): Router {
+  const router = Router({ mergeParams: true });
 
-router.get(
-  "/status",
-  asyncHandler(async (_req, res) => {
-    res.json(getBotStatus());
-  })
-);
+  router.get(
+    "/status",
+    asyncHandler(async (req, res) => {
+      const { instanceId } = req.params;
+      res.json(manager.getBotStatus(instanceId));
+    })
+  );
 
-router.post(
-  "/start",
-  asyncHandler(async (req, res) => {
-    const requestedInterval = Number(req.body?.intervalMinutes);
-    const status = Number.isFinite(requestedInterval) && requestedInterval > 0 ? startBot(requestedInterval) : startBot();
-    res.json(status);
-  })
-);
+  router.post(
+    "/start",
+    asyncHandler(async (req, res) => {
+      const { instanceId } = req.params;
+      const requestedInterval = Number(req.body?.intervalMinutes);
+      const status =
+        Number.isFinite(requestedInterval) && requestedInterval > 0
+          ? manager.startBot(instanceId, requestedInterval)
+          : manager.startBot(instanceId);
+      res.json(status);
+    })
+  );
 
-router.post(
-  "/stop",
-  asyncHandler(async (_req, res) => {
-    res.json(stopBot());
-  })
-);
+  router.post(
+    "/stop",
+    asyncHandler(async (req, res) => {
+      const { instanceId } = req.params;
+      res.json(manager.stopBot(instanceId));
+    })
+  );
 
-export default router;
+  return router;
+}

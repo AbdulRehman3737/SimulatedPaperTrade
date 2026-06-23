@@ -1,0 +1,20 @@
+[
+  {
+    "id": "51ab3c54-c397-4af0-8fe9-c4b094c14e08",
+    "name": "Quick Profit",
+    "color": "#10b981",
+    "createdAt": "2026-06-23T12:14:12.545Z"
+  },
+  {
+    "id": "fe7da3bd-c16d-46f1-a3ba-e0c97d7a4593",
+    "name": "Swing",
+    "color": "#ef4444",
+    "createdAt": "2026-06-23T12:14:12.548Z"
+  },
+  {
+    "id": "93c94a79-d7c2-4e8c-8b40-8458774b88b6",
+    "name": "Scalper",
+    "color": "#6366f1",
+    "createdAt": "2026-06-23T12:14:12.550Z"
+  }
+]

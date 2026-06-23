@@ -3,19 +3,28 @@ import path from "path";
 
 const DATA_DIR = path.join(__dirname, "..", "data");
 
-function resolveDataPath(fileName: string): string {
+function resolveDataPath(fileName: string, subDir?: string): string {
+  if (subDir) {
+    return path.join(DATA_DIR, subDir, fileName);
+  }
   return path.join(DATA_DIR, fileName);
+}
+
+function ensureDir(dirPath: string): void {
+  if (!fs.existsSync(dirPath)) {
+    fs.mkdirSync(dirPath, { recursive: true });
+  }
 }
 
 /**
  * Reads and parses a JSON file from the data directory.
  * Falls back to `defaultValue` (and writes it back) if the file is missing.
  */
-export function readJsonFile<T>(fileName: string, defaultValue: T): T {
-  const filePath = resolveDataPath(fileName);
+export function readJsonFile<T>(fileName: string, defaultValue: T, subDir?: string): T {
+  const filePath = resolveDataPath(fileName, subDir);
 
   if (!fs.existsSync(filePath)) {
-    writeJsonFile(fileName, defaultValue);
+    writeJsonFile(fileName, defaultValue, subDir);
     return defaultValue;
   }
 
@@ -36,12 +45,11 @@ export function readJsonFile<T>(fileName: string, defaultValue: T): T {
  * directory if it does not already exist. Writes atomically via a temp
  * file + rename to avoid corrupting the JSON on a crash mid-write.
  */
-export function writeJsonFile<T>(fileName: string, data: T): void {
-  if (!fs.existsSync(DATA_DIR)) {
-    fs.mkdirSync(DATA_DIR, { recursive: true });
-  }
+export function writeJsonFile<T>(fileName: string, data: T, subDir?: string): void {
+  const dirPath = subDir ? path.join(DATA_DIR, subDir) : DATA_DIR;
+  ensureDir(dirPath);
 
-  const filePath = resolveDataPath(fileName);
+  const filePath = resolveDataPath(fileName, subDir);
   const tempPath = `${filePath}.tmp`;
   const serialized = JSON.stringify(data, null, 2);
 

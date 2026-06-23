@@ -1,16 +1,25 @@
-import { getTrades } from "../api/client";
+import { useInstances } from "../context/InstanceContext";
+import { useTrades } from "../hooks/useInstanceData";
 import { ActionBadge } from "../components/ActionBadge";
 import { ErrorMessage } from "../components/ErrorMessage";
 import { Spinner } from "../components/Spinner";
-import { usePolling } from "../hooks/usePolling";
 import { formatCurrency, formatDateTime, formatPercent } from "../utils/format";
 
-const POLL_INTERVAL_MS = 15_000;
-
 export default function TradeHistory(): JSX.Element {
-  const { data: trades, error, loading } = usePolling(getTrades, POLL_INTERVAL_MS);
+  const { currentInstance } = useInstances();
+  const instanceId = currentInstance?.id;
 
-  if (loading && !trades) return <Spinner />;
+  const { data: trades, error, isLoading } = useTrades(instanceId);
+
+  if (!instanceId) {
+    return (
+      <div className="flex items-center justify-center py-20 text-slate-500">
+        No bot instances available.
+      </div>
+    );
+  }
+
+  if (isLoading && !trades) return <Spinner />;
   if (error) return <ErrorMessage message={error} />;
 
   const sorted = [...(trades ?? [])].sort(

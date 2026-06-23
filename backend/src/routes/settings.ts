@@ -1,9 +1,7 @@
 import { Router } from "express";
-import { loadSettings, saveSettings } from "../services/botService";
+import { BotManager } from "../services/botManager";
 import { Settings } from "../types";
 import { asyncHandler } from "../utils/asyncHandler";
-
-const router = Router();
 
 const NUMERIC_FIELDS: (keyof Settings)[] = [
   "startingMoney",
@@ -38,27 +36,33 @@ function validateSettings(settings: Settings): string | null {
   return null;
 }
 
-router.get(
-  "/",
-  asyncHandler(async (_req, res) => {
-    res.json(loadSettings());
-  })
-);
+export function createSettingsRoutes(manager: BotManager): Router {
+  const router = Router({ mergeParams: true });
 
-router.post(
-  "/",
-  asyncHandler(async (req, res) => {
-    const merged = coerceNumericFields(loadSettings(), req.body as Partial<Settings>);
+  router.get(
+    "/",
+    asyncHandler(async (req, res) => {
+      const { instanceId } = req.params;
+      res.json(manager.loadSettings(instanceId));
+    })
+  );
 
-    const validationError = validateSettings(merged);
-    if (validationError) {
-      res.status(400).json({ error: validationError });
-      return;
-    }
+  router.post(
+    "/",
+    asyncHandler(async (req, res) => {
+      const { instanceId } = req.params;
+      const merged = coerceNumericFields(manager.loadSettings(instanceId), req.body as Partial<Settings>);
 
-    saveSettings(merged);
-    res.json(merged);
-  })
-);
+      const validationError = validateSettings(merged);
+      if (validationError) {
+        res.status(400).json({ error: validationError });
+        return;
+      }
 
-export default router;
+      manager.saveSettings(instanceId, merged);
+      res.json(merged);
+    })
+  );
+
+  return router;
+}

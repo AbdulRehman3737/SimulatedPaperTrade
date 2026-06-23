@@ -1,8 +1,10 @@
 import { useEffect, useState, type FormEvent } from "react";
-import { extractErrorMessage, getSettings, resetPortfolio, updateSettings } from "../api/client";
+import { useSWRConfig } from "swr";
+import { useInstances } from "../context/InstanceContext";
+import { extractErrorMessage, resetPortfolio, updateSettings } from "../api/client";
+import { useSettings } from "../hooks/useInstanceData";
 import { ErrorMessage } from "../components/ErrorMessage";
 import { Spinner } from "../components/Spinner";
-import { usePolling } from "../hooks/usePolling";
 import { Settings } from "../types";
 
 const FIELDS: { key: keyof Settings; label: string; suffix?: string }[] = [
@@ -16,7 +18,12 @@ const FIELDS: { key: keyof Settings; label: string; suffix?: string }[] = [
 ];
 
 export default function StrategySettings(): JSX.Element {
-  const { data: settings, error, loading } = usePolling(getSettings, 0);
+  const { currentInstance } = useInstances();
+  const instanceId = currentInstance?.id;
+  const { mutate } = useSWRConfig();
+
+  const { data: settings, error, isLoading } = useSettings(instanceId);
+
   const [form, setForm] = useState<Settings | null>(null);
   const [saving, setSaving] = useState(false);
   const [resetting, setResetting] = useState(false);
@@ -27,8 +34,20 @@ export default function StrategySettings(): JSX.Element {
     if (settings && !form) setForm(settings);
   }, [settings, form]);
 
+  useEffect(() => {
+    setForm(null);
+  }, [instanceId]);
+
+  if (!instanceId) {
+    return (
+      <div className="flex items-center justify-center py-20 text-slate-500">
+        No bot instances available.
+      </div>
+    );
+  }
+
   if (error) return <ErrorMessage message={error} />;
-  if (loading || !form) return <Spinner />;
+  if (isLoading || !form) return <Spinner />;
 
   function handleChange(key: keyof Settings, value: string): void {
     setForm((prev) => (prev ? { ...prev, [key]: Number(value) } : prev));
@@ -36,15 +55,16 @@ export default function StrategySettings(): JSX.Element {
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>): Promise<void> {
     event.preventDefault();
-    if (!form) return;
+    if (!form || !instanceId) return;
 
     setSaving(true);
     setStatusMessage(null);
     setStatusError(null);
     try {
-      const saved = await updateSettings(form);
+      const saved = await updateSettings(instanceId, form);
       setForm(saved);
       setStatusMessage("Settings saved.");
+      await mutate(["settings", instanceId]);
     } catch (err) {
       setStatusError(extractErrorMessage(err));
     } finally {
@@ -53,14 +73,16 @@ export default function StrategySettings(): JSX.Element {
   }
 
   async function handleReset(): Promise<void> {
+    if (!instanceId) return;
     if (!window.confirm("Reset the simulated wallet to the starting money and clear all open positions?")) return;
 
     setResetting(true);
     setStatusMessage(null);
     setStatusError(null);
     try {
-      await resetPortfolio();
+      await resetPortfolio(instanceId);
       setStatusMessage("Portfolio reset.");
+      await mutate(["portfolio", instanceId]);
     } catch (err) {
       setStatusError(extractErrorMessage(err));
     } finally {

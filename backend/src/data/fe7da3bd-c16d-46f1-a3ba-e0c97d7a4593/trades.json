@@ -1,0 +1,11 @@
+[
+  {
+    "id": 1,
+    "symbol": "SOL",
+    "action": "BUY",
+    "price": 69.16,
+    "amount": 3000,
+    "reason": "RSI 28.14 < buy threshold 50, EMA50 (71.91) > EMA200 (71.3), volume change -85.76% > min -999%",
+    "timestamp": "2026-06-23T12:14:13.427Z"
+  }
+]

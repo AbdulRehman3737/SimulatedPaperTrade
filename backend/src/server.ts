@@ -6,12 +6,13 @@ import path from "path";
 
 dotenv.config();
 
-import botRoutes from "./routes/bot";
+import { botManager } from "./services/botManager";
+import { createBotRoutes } from "./routes/bot";
+import { createInstanceRoutes } from "./routes/instances";
+import { createPortfolioRoutes } from "./routes/portfolio";
+import { createSettingsRoutes } from "./routes/settings";
+import { createTradesRoutes } from "./routes/trades";
 import marketRoutes from "./routes/market";
-import portfolioRoutes from "./routes/portfolio";
-import settingsRoutes from "./routes/settings";
-import tradesRoutes from "./routes/trades";
-import { startBot } from "./services/botService";
 
 const app = express();
 const PORT = Number(process.env.PORT) || 4000;
@@ -27,11 +28,12 @@ app.get("/api/health", (_req, res) => {
   res.json({ status: "ok" });
 });
 
-app.use("/api/portfolio", portfolioRoutes);
-app.use("/api/trades", tradesRoutes);
+app.use("/api/instances", createInstanceRoutes(botManager));
+app.use("/api/instances/:instanceId/bot", createBotRoutes(botManager));
+app.use("/api/instances/:instanceId/settings", createSettingsRoutes(botManager));
+app.use("/api/instances/:instanceId/portfolio", createPortfolioRoutes(botManager));
+app.use("/api/instances/:instanceId/trades", createTradesRoutes(botManager));
 app.use("/api/market", marketRoutes);
-app.use("/api/settings", settingsRoutes);
-app.use("/api/bot", botRoutes);
 
 // Optionally serve the built frontend so a single process can run the whole
 // app on one Droplet. Only kicks in when frontend/dist exists next to this
@@ -58,9 +60,8 @@ app.listen(PORT, () => {
   console.log(`Crypto paper trading backend listening on port ${PORT}`);
 
   if (process.env.BOT_AUTOSTART !== "false") {
-    const intervalMinutes = Number(process.env.BOT_INTERVAL_MINUTES) || 5;
-    startBot(intervalMinutes);
-    console.log(`Trading bot auto-started (every ${intervalMinutes} min).`);
+    botManager.startAll();
+    console.log(`All bot instances auto-started.`);
   }
 });
 

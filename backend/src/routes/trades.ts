@@ -1,14 +1,17 @@
 import { Router } from "express";
-import { loadTrades } from "../services/botService";
+import { BotManager } from "../services/botManager";
 import { asyncHandler } from "../utils/asyncHandler";
 
-const router = Router();
+export function createTradesRoutes(manager: BotManager): Router {
+  const router = Router({ mergeParams: true });
 
-router.get(
-  "/",
-  asyncHandler(async (_req, res) => {
-    res.json(loadTrades());
-  })
-);
+  router.get(
+    "/",
+    asyncHandler(async (req, res) => {
+      const { instanceId } = req.params;
+      res.json(manager.loadTrades(instanceId));
+    })
+  );
 
-export default router;
+  return router;
+}

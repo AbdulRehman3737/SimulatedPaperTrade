@@ -69,6 +69,13 @@ export interface MarketData {
   indicators: Indicators;
 }
 
+export interface BotInstance {
+  id: string;
+  name: string;
+  color: string;
+  createdAt: string;
+}
+
 export interface BotStatus {
   running: boolean;
   intervalMinutes: number;

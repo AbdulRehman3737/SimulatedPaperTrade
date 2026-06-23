@@ -1,4 +1,5 @@
 import { NavLink } from "react-router-dom";
+import { InstanceTabs } from "./InstanceTabs";
 
 const LINKS = [
   { to: "/", label: "Dashboard" },
@@ -30,6 +31,7 @@ export function NavBar(): JSX.Element {
           ))}
         </nav>
       </div>
+      <InstanceTabs />
     </header>
   );
 }

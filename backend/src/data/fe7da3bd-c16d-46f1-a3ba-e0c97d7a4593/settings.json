@@ -1,0 +1,9 @@
+{
+  "startingMoney": 50000,
+  "takeProfit": 3,
+  "stopLoss": 1.5,
+  "rsiBuy": 50,
+  "rsiSell": 70,
+  "investmentPerTrade": 3000,
+  "minVolumeChange": -999
+}

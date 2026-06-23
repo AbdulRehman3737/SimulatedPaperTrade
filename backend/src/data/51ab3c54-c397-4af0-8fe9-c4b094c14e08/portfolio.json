@@ -1,0 +1,13 @@
+{
+  "cash": 48000,
+  "holdings": [
+    {
+      "symbol": "SOL",
+      "amount": 28.91844997108155,
+      "entryPrice": 69.16,
+      "investedValue": 2000,
+      "openedAt": "2026-06-23T12:14:13.422Z"
+    }
+  ],
+  "totalProfit": 0
+}
